@@ -14,7 +14,7 @@ int main()
       p1.c_lflag &= (ICANON | ECHO);
       //p1.c_lflag &= IEXTEN;
        cout<<x<<endl;
-       int lv = 10;
+       int lv = 100;
        char ch;
        string str;
     tcsetattr(0, TCSANOW,  &p1);

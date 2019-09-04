@@ -3,9 +3,12 @@
 #include<unistd.h>
 #include<stdlib.h>
 #include<sys/wait.h>
+#include<fcntl.h>
+#include<sys/stat.h>
 using namespace std;
 #define max_word_len 20
 #define max_words 50
+typedef long long ll;
 
 void prompt()
 {
@@ -24,7 +27,7 @@ void prompt()
     cout<<" :";
 }
 
-void input(char **carrptr, string str, bool &b)
+/*void input(char **carrptr, string &str, bool &b)
 {
     char ch;
     ch = getchar();
@@ -54,6 +57,45 @@ void input(char **carrptr, string str, bool &b)
         ++count;
     }
     carrptr[lv+1] = NULL;
+}*/ 
+
+void child_handler(char** parr, bool pflag, bool rtflag)
+{
+    ll lv;
+    int fd;
+    bool decide;
+    char pathh[30];
+    getcwd(pathh, 30);
+    if(pflag || rtflag)
+    {
+        if(!pflag && rtflag)
+        {
+            for(lv=0; parr[lv] != NULL; lv++);
+            cout<<"runnin\n";
+            lv -= 2;
+            cout<<parr[lv+1]<<endl;
+            //strcat(pathh, parr[lv+1]);
+            //cout<<pathh<<endl;
+            
+            decide = (strcmp(parr[lv], ">") == 0)?true:false;
+            fd = open(parr[lv+1], O_APPEND | O_CREAT | 0640);
+            parr[lv] = NULL;
+            cout<<"fd "<<fd<<endl;
+            close(1);
+            dup2(fd, 1);
+            
+            execvp(parr[0], parr);
+            close(fd);
+            cout<<"done dana done dan\n";
+        }
+
+    }
+    else
+    {
+        int s_f = execvp(parr[0], parr);
+        if(s_f == -1)
+            cout<<"     error\n";
+    }
 }
 
 int main()
@@ -61,24 +103,32 @@ int main()
     //char *charr[10];
     char ch;
     int lv = -1;
-    bool pipeflag;
+    bool pipeflag, redirflag;
     while(1)
     {
         pipeflag = false;
+        redirflag = false;
         prompt();
-
-        char **charr ;
-        string str;
-        input(charr, &str, &pipeflag);
-    	/*do{
+        //cout<<"prompted\n";
+        char **charr = new char*[max_words];
+        //cout<<"allocated memory\n";
+        //string str;
+        //input(charr, str, &pipeflag);
+        lv = -1;
+    	do{
     	    ++lv;
     	    charr[lv] = new char[max_word_len];
     	    cin>>charr[lv];
+            if(strcmp(charr[lv], "|") == 0)
+                pipeflag = true;
+            else if(strcmp(charr[lv], ">") == 0 || strcmp(charr[lv], ">>") == 0)
+                redirflag = true;
     	    //cout<<lv<<" took inp of "<<charr[lv]<<endl;
     	    ch = getchar();
+
     	}while(ch != '\n');
     	++lv;
-    	charr[lv] = NULL;*/
+    	charr[lv] = NULL;
         int lv = 0;
         while(charr[lv])
             cout<<charr[lv++]<<endl;
@@ -114,10 +164,7 @@ int main()
         else
         {
             //cout<<"     inside child\n";
-            int s_f = execvp(charr[0], charr);
-            if(s_f == -1)
-                cout<<"     error\n";
-            //cout<<"     exiting child\n";
+            child_handler(charr, pipeflag, redirflag);
             exit(0);
         }
         //cout<<f<<"      deleting memory\n";
