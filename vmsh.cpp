@@ -7,6 +7,23 @@ using namespace std;
 #define max_word_len 20
 #define max_words 50
 
+void prompt()
+{
+    char hostname[50];
+    char direc[50];
+    getcwd(direc, 50);
+    gethostname(hostname, 50);
+    cout<<endl<<getenv("USER")<<'@';
+    int id = getuid();
+    cout<<hostname;
+    cout<<" "<<direc<<' ';
+    if(!id)
+        cout<<"(#)";
+    else
+        cout<<"($)";
+    cout<<" :";
+}
+
 int main()
 {
     //char *charr[10];
@@ -14,9 +31,7 @@ int main()
     int lv = -1;
     while(1)
     {
-        cout<<getenv("USER")<<'@';
-        //cout<<getenv("HOSTNAME");
-        cout<<':'<<getenv("PWD")<<": ";
+        prompt();
 
         char **charr = new char*[max_words];
     	do{
@@ -39,11 +54,17 @@ int main()
             	cout<<"null\n";
             --lv;
     	}*/
+        if(strlen(charr[0]) == 0)
+            continue;
         if(strcmp(charr[0], "exit") == 0)
         {
             break;
             //delete charr;
         }
+        /*if(strcmp(charr[0], "cd") == 0)
+        {
+            int f = chdir(charr+)
+        }*/
         int f = fork();
         if(f)
         {
