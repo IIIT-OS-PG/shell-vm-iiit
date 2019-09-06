@@ -59,7 +59,10 @@ void prompt()
     carrptr[lv+1] = NULL;
 }*/ 
 
-void eval_pipe(char** ptr)
+void child_handler(char** parr, bool pflag, bool rtflag);
+
+
+void eval_pipe(char** ptr, bool rtflag)
 {
     cout<<"evaluating pipe\n";
     int lv, count=0;
@@ -70,7 +73,7 @@ void eval_pipe(char** ptr)
     char** dupptr;
     //int f = fork(), status;
     int fd[2];
-    pipe(fd);
+    //pipe(fd);
     for(lv=0; ptr[lv] != NULL && !rend; lv++)
     {
         start = lv;
@@ -96,37 +99,44 @@ void eval_pipe(char** ptr)
             cout<<"breaking away\n";
             break;
         }
-
+        pipe(fd);
         int f = fork();
         int status;
         if(f)
         {
-            cout<<"parent executing child number "<<f<<endl;
+            //cout<<"parent executing child number "<<f<<endl;
             waitpid(f, &status, 0);
+            close(fd[1]);
+            dup2(fd[0], 0);
+            close(fd[0]);
             lv = end;
             cout<<"lv updated "<<lv<<endl;
         }
         else
         {
             cout<<"child\n";
-            dup2(fd[1], STDOUT_FILENO);
-            if(count)
-                dup2(fd[0], STDIN_FILENO);
-            ++count;
-            if(rend == true)
-                close(fd[0]);
+            close(fd[0]);
+            dup2(fd[1], 1);
+            close(fd[1]);
             execvp(ptr[start], dupptr);
             _exit(status);
             cout<<"exit child\n";
         }      
     }
     cout<<"loop exit\n";
-    close(fd[1]);
-    dup2(fd[0], STDIN_FILENO);
-    close(fd[0]);
-    execvp(ptr[start], dupptr);
+    if(!rtflag)
+    {
+        close(fd[1]);
+        dup2(fd[0], STDIN_FILENO);
+        close(fd[0]);
+        execvp(ptr[start], dupptr);    
+    }
+    else
+    {
+        child_handler(ptr+start, false, true);
+    }
+    
 }
-
 void child_handler(char** parr, bool pflag, bool rtflag)
 {
     ll lv;
@@ -160,9 +170,9 @@ void child_handler(char** parr, bool pflag, bool rtflag)
             close(fd);
             //cout<<"done dana done dan\n";
         }
-        else if(pflag && !rtflag)
+        else
         {
-            eval_pipe(parr);    
+            eval_pipe(parr, rtflag);    
         }
 
 
