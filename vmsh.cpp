@@ -6,8 +6,8 @@
 #include<fcntl.h>
 #include<sys/stat.h>
 using namespace std;
-#define max_word_len 20
-#define max_words 50
+#define max_word_len 100
+#define max_words 100
 typedef long long ll;
 
 void prompt()
@@ -65,7 +65,7 @@ void eval_pipe(char** ptr)
     int lv, count=0;
     int start, end;
     bool rend = false;
-    cout<<ptr[0]<<' '<<ptr[1]<<' '<<ptr[2]<<' '<<ptr[3]<<' '<<ptr[4]<<' '<<endl;
+    //cout<<ptr[0]<<' '<<ptr[1]<<' '<<ptr[2]<<' '<<ptr[3]<<' '<<ptr[4]<<' '<<endl;
     
     char** dupptr;
     //int f = fork(), status;
@@ -84,16 +84,25 @@ void eval_pipe(char** ptr)
         }
         cout<<"updated start end "<<start<<' '<<end<<endl;
         if(ptr[end] == NULL)
+        {
             rend = true;
+            cout<<"reached NULL\n";
+        }
         ptr[end] = NULL;
         
         dupptr = ptr+start;
-        
+        if(rend == true)
+        {
+            cout<<"breaking away\n";
+            break;
+        }
+
         int f = fork();
+        int status;
         if(f)
         {
-            cout<<"parent\n";
-            wait(NULL);
+            cout<<"parent executing child number "<<f<<endl;
+            waitpid(f, &status, 0);
             lv = end;
             cout<<"lv updated "<<lv<<endl;
         }
@@ -101,13 +110,21 @@ void eval_pipe(char** ptr)
         {
             cout<<"child\n";
             dup2(fd[1], STDOUT_FILENO);
-            dup2(fd[0], STDIN_FILENO);
+            if(count)
+                dup2(fd[0], STDIN_FILENO);
+            ++count;
             if(rend == true)
                 close(fd[0]);
             execvp(ptr[start], dupptr);
-            exit(0);
+            _exit(status);
+            cout<<"exit child\n";
         }      
     }
+    cout<<"loop exit\n";
+    close(fd[1]);
+    dup2(fd[0], STDIN_FILENO);
+    close(fd[0]);
+    execvp(ptr[start], dupptr);
 }
 
 void child_handler(char** parr, bool pflag, bool rtflag)
@@ -147,6 +164,8 @@ void child_handler(char** parr, bool pflag, bool rtflag)
         {
             eval_pipe(parr);    
         }
+
+
 
     }
     else
@@ -214,17 +233,18 @@ int main()
             int f = chdir(charr+)
         }*/
         int f = fork();
+        int status;
         if(f)
         {
             //cout<<"     inside parent\n";
-            wait(NULL);
+            waitpid(f, &status, 0);
             //cout<<"     parent's wait ended\n";
         }
         else
         {
             //cout<<"     inside child\n";
             child_handler(charr, pipeflag, redirflag);
-            exit(0);
+            _exit(status);
         }
         //cout<<f<<"      deleting memory\n";
         --lv;
