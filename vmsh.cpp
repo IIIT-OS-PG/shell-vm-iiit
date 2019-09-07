@@ -182,8 +182,37 @@ void child_handler(char** parr, bool pflag, bool rtflag)
     {
         int s_f = execvp(parr[0], parr);
         if(s_f == -1)
-            cout<<"     error\n";
+            cout<<"\t\terror\n";
     }
+}
+
+void change_direc(char *cptr[], char pdir[30])
+{
+    char *path = cptr[1];
+    char prevpath2[30];
+    //cout<<"prev start "<<pdir<<endl;
+    if(path == NULL || strlen(path) == 0 || strcmp(path, "~") == 0)
+    {
+        //cout<<"homepath\n";
+        getcwd(pdir, 30);
+        chdir(getenv("HOME"));
+    }
+    else if(strcmp(path, "-") == 0)
+    {
+        //cout<<"prevpath\n";
+        getcwd(prevpath2, 30);
+        chdir(pdir);
+        strcpy(pdir, prevpath2);
+    }
+    else
+    {
+        //cout<<"normpath\n";
+        getcwd(pdir, 30);
+        int f = chdir(path);
+        if(f == -1)
+            cout<<"\t\tInvalid path\n";
+    }
+    //cout<<"prev end "<<pdir<<endl;
 }
 
 int main()
@@ -192,6 +221,8 @@ int main()
     char ch;
     int lv = -1;
     bool pipeflag, redirflag;
+    char prevdir[30];
+    getcwd(prevdir, 30);
     while(1)
     {
         pipeflag = false;
@@ -199,6 +230,8 @@ int main()
         prompt();
         //cout<<"prompted\n";
         char **charr = new char*[max_words];
+        
+        //getcwd(currdir);
         //cout<<"allocated memory\n";
         //string str;
         //input(charr, str, &pipeflag);
@@ -238,24 +271,33 @@ int main()
             break;
             //delete charr;
         }
+        else if(strcmp(charr[0], "cd") == 0)
+        {
+
+            change_direc(charr, prevdir);
+        }
         /*if(strcmp(charr[0], "cd") == 0)
         {
             int f = chdir(charr+)
         }*/
-        int f = fork();
-        int status;
-        if(f)
-        {
-            //cout<<"     inside parent\n";
-            waitpid(f, &status, 0);
-            //cout<<"     parent's wait ended\n";
-        }
         else
         {
-            //cout<<"     inside child\n";
-            child_handler(charr, pipeflag, redirflag);
-            _exit(status);
+            int f = fork();
+            int status;
+            if(f)
+            {
+                //cout<<"     inside parent\n";
+                waitpid(f, &status, 0);
+                //cout<<"     parent's wait ended\n";
+            }
+            else
+            {
+                //cout<<"     inside child\n";
+                child_handler(charr, pipeflag, redirflag);
+                _exit(status);
+            }    
         }
+        
         //cout<<f<<"      deleting memory\n";
         --lv;
         //cout<<"lv "<<lv<<endl;
