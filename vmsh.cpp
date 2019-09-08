@@ -27,44 +27,95 @@ void prompt()
     cout<<" :";
 }
 
-/*void input(char **carrptr, string &str, bool &b)
+char** input(bool& pflag, bool& rflag)
 {
+    char **ptr;
     char ch;
-    ch = getchar();
-    int lv=0;
-    while(ch != '\n' && ch != '\0')
-    {
-        str[lv] = ch;
-        ++lv;
-    }
-    carrptr = new char[str.length()+1];
-    int lv1 = 0, lv2 = 0, count=0;
-    lv=0;
-    while(count < str.length())
-    {
-        if(str[lv] == '|')
-            b = true;
-        if(str[lv] != ' ' && str[lv] != '\n' && str[lv] != '\0')
+    int lv1 = -1, lv2=0;
+    bool line_end = false;
+    bool enter;
+    pflag = false;
+    rflag = false;
+    ptr = new char*[10];
+    /*if(ptr[1] == NULL)
+        cout<<"NULL func\n";*/
+    //ptr = NULL;
+    do{
+        ch = getchar();
+        lv2=0;
+        //cout<<"beg lv1 lv2 "<<lv1<<' '<<lv2<<endl;
+        enter = true;
+        while(ch == '\n' || ch == ' ')
         {
-            carrptr[lv1][lv2] = str[lv];
-            ++lv2;
+            //cout<<"parsing space\n";
+            if(ch == '\n')
+            {
+                //cout<<"encountered newline\n";
+                line_end = true;
+                enter = false;
+                break;
+            }
+            ch = getchar();
+        }
+        //cout<<"extra spaces\n";
+        //ptr[lv1] = NULL;
+        if(enter)
+        {
+            //cout<<"incrementing lv1\n";
+            ++lv1;
+            //cout<<"incremened to "<<lv1<<endl;
+            ptr[lv1] = new char[10];
+            //cout<<"allotted mem to ptr"<<lv1<<endl;
+            while(1)
+            {
+                //++lv1;
+                if(ch != ' ' && ch != '\n' && ch != '\0')
+                {
+                    //cout<<"inserting character "<<ch<<" at "<<lv1<<' '<<lv2<<endl;
+                    ptr[lv1][lv2] = ch;
+                    if(ch == '>')
+                        rflag = true;
+                    else if(ch == '|')
+                        pflag = true;
+                    //cout<<"inserted "<<ptr[lv1][lv2]<<endl;
+                    ++lv2;
+                    ch = getchar();
+                }
+                else if(ch == ' ')
+                {
+                    //cout<<"space break\n";
+                    break;
+                }
+
+                //ch = getchar();
+                else if(ch == '\n')
+                {
+                    line_end = true;
+                    //cout<<"breakin away\n";
+                    break;
+                }
+            }
+            //cout<<"inserted "<<ptr[lv1]<<" at index "<<lv1<<endl;
         }
         else
-        {
-            ++lv1;
-            lv2=0;
-        }
-        ++count;
-    }
-    carrptr[lv+1] = NULL;
-}*/ 
+            break;
+        //cout<<"end lv1 lv2 "<<lv1<<' '<<lv2<<endl;
+    }while(!line_end);
+
+    //cout<<"setin index "<<lv1+1<<" to null\n";
+    ptr[lv1+1] = NULL;
+    //cout<<ptr[0]<<endl;
+    /*if(ptr[1] == NULL)
+        cout<<"NULL\n";*/
+    return ptr;
+} 
 
 void child_handler(char** parr, bool pflag, bool rtflag);
 
 
 void eval_pipe(char** ptr, bool rtflag)
 {
-    cout<<"evaluating pipe\n";
+    //cout<<"evaluating pipe\n";
     int lv, count=0;
     int start, end;
     bool rend = false;
@@ -78,25 +129,25 @@ void eval_pipe(char** ptr, bool rtflag)
     {
         start = lv;
         end = lv+1;
-        cout<<"inital start end "<<start<<' '<<end<<endl;
+        //cout<<"inital start end "<<start<<' '<<end<<endl;
         while(ptr[end] != NULL && strcmp(ptr[end], "|") != 0)
         {
-            cout<<"end "<<end<<endl;
+            //cout<<"end "<<end<<endl;
             ++end;
-            cout<<"end again "<<end<<endl;
+            //cout<<"end again "<<end<<endl;
         }
-        cout<<"updated start end "<<start<<' '<<end<<endl;
+        //cout<<"updated start end "<<start<<' '<<end<<endl;
         if(ptr[end] == NULL)
         {
             rend = true;
-            cout<<"reached NULL\n";
+            //cout<<"reached NULL\n";
         }
         ptr[end] = NULL;
         
         dupptr = ptr+start;
         if(rend == true)
         {
-            cout<<"breaking away\n";
+            //cout<<"breaking away\n";
             break;
         }
         pipe(fd);
@@ -110,20 +161,20 @@ void eval_pipe(char** ptr, bool rtflag)
             dup2(fd[0], 0);
             close(fd[0]);
             lv = end;
-            cout<<"lv updated "<<lv<<endl;
+            //cout<<"lv updated "<<lv<<endl;
         }
         else
         {
-            cout<<"child\n";
+            //cout<<"child\n";
             close(fd[0]);
             dup2(fd[1], 1);
             close(fd[1]);
             execvp(ptr[start], dupptr);
             _exit(status);
-            cout<<"exit child\n";
+            //cout<<"exit child\n";
         }      
     }
-    cout<<"loop exit\n";
+    //cout<<"loop exit\n";
     if(!rtflag)
     {
         close(fd[1]);
@@ -222,6 +273,7 @@ int main()
     int lv = -1;
     bool pipeflag, redirflag;
     char prevdir[30];
+    bool record = false;
     getcwd(prevdir, 30);
     while(1)
     {
@@ -229,28 +281,12 @@ int main()
         redirflag = false;
         prompt();
         //cout<<"prompted\n";
-        char **charr = new char*[max_words];
+        char **charr = input(pipeflag, redirflag);
         
         //getcwd(currdir);
         //cout<<"allocated memory\n";
         //string str;
         //input(charr, str, &pipeflag);
-        lv = -1;
-    	do{
-    	    ++lv;
-    	    charr[lv] = new char[max_word_len];
-    	    cin>>charr[lv];
-            if(strcmp(charr[lv], "|") == 0)
-                pipeflag = true;
-            else if(strcmp(charr[lv], ">") == 0 || strcmp(charr[lv], ">>") == 0)
-                redirflag = true;
-    	    //cout<<lv<<" took inp of "<<charr[lv]<<endl;
-    	    ch = getchar();
-
-    	}while(ch != '\n');
-    	++lv;
-    	charr[lv] = NULL;
-        int lv = 0;
         //while(charr[lv])
           //  cout<<charr[lv++]<<endl;
         //cout<<"     lv end "<<lv<<endl;
@@ -264,7 +300,7 @@ int main()
             	cout<<"null\n";
             --lv;
     	}*/
-        if(strlen(charr[0]) == 0)
+        if(charr[0] == NULL)
             continue;
         if(strcmp(charr[0], "exit") == 0)
         {
