@@ -36,7 +36,7 @@ char** input(bool& pflag, bool& rflag)
     bool enter;
     pflag = false;
     rflag = false;
-    ptr = new char*[10];
+    ptr = new char*[max_words];
     /*if(ptr[1] == NULL)
         cout<<"NULL func\n";*/
     //ptr = NULL;
@@ -64,7 +64,7 @@ char** input(bool& pflag, bool& rflag)
             //cout<<"incrementing lv1\n";
             ++lv1;
             //cout<<"incremened to "<<lv1<<endl;
-            ptr[lv1] = new char[10];
+            ptr[lv1] = new char[max_word_len];
             //cout<<"allotted mem to ptr"<<lv1<<endl;
             while(1)
             {
