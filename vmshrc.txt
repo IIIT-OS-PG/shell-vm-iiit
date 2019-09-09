@@ -1,0 +1,8 @@
+USERNAME=virat
+USER=virat
+PWD=/home/virat/Desktop/vmsh
+HOME=/home/virat
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+OLDPWD=/home/virat
+_=/usr/bin/env
