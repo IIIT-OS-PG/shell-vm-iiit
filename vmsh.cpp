@@ -3,6 +3,7 @@
 int main()
 {
     //char *charr[10];
+    //set_environ();
     char ch;
     int lv = -1;
     bool pipeflag, redirflag;

@@ -1,4 +1,5 @@
 #include<iostream>
+#include<fstream>
 #include<string.h>
 #include<unistd.h>
 #include<stdlib.h>
@@ -17,3 +18,5 @@ void eval_pipe(char** ptr, bool rtflag);
 char** input(bool& pflag, bool& rflag);
 
 void prompt();
+
+void set_environ();
